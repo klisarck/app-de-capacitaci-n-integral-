@@ -11,7 +11,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      
+      # --- ESTE ES EL PASO NUEVO QUE SOLUCIONA EL ERROR ---
+      - name: Configurar Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      # ---------------------------------------------------
+          
       - name: Instalar dependencias
-        run: bun install # O npm install
+        run: bun install
+        
       - name: Ejecutar Pruebas
-        run: bun run test # O npm test
+        run: bun test # En Bun, el comando nativo para pruebas suele ser "bun test"
