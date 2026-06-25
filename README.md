@@ -1,4 +1,6 @@
-
+### 📖 Documentación Técnica Autogenerada
+Para generar y visualizar el sitio web estático con la documentación técnica de las funciones del sistema, ejecute localmente:
+```npm run doc``` o ```bun run doc```
 # Plataforma de Capacitación Integral y Control de Estudios de Cadetes
 
 Aplicación web automatizada y protegida diseñada para la gestión del plan de estudios y el progreso de conocimientos militares.
