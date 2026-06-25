@@ -311,3 +311,4 @@ sequenceDiagram
 
 
 ```
+📌 **Bitácora del Proyecto:** El historial detallado de tareas y el cumplimiento de la *Definition of Done (DoD)* se encuentran documentados de forma independiente en el archivo [CHANGELOG.md](./CHANGELOG.md).
