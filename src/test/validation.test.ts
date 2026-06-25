@@ -1,4 +1,5 @@
-// src/test/validation.test.ts
+
+// Control de calidad y trazabilidad del prototipo inicial
 import { describe, test, expect } from 'vitest';
 import { validateStudentData } from '../lib/validation';
 import { evaluarExamen } from '../services/evaluacionService';
