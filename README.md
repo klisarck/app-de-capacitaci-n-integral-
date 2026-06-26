@@ -14,13 +14,43 @@ Las variables de entorno necesarias para levantar el proyecto de forma local se 
 
 ```mermaid
 graph TD
-    User((Usuario)) --> FE[Frontend: React + Vite + TypeScript]
-    FE --> State[Gestión de Estado Local]
-    FE --> SB[(Cloud Backend: Supabase)]
-    SB --> DB1[Autenticación de Cadetes]
-    SB --> DB2[Base de Datos: Plan de Estudios]
-    SB --> DB3[Bitácora de Progreso y Notas]
+    classDef frontend fill:#ffffff,stroke:#ffd54f,stroke-width:2px,color:#000000;
+    classDef core fill:#f1f8e9,stroke:#558b2f,stroke-width:2px,color:#000000;
+    classDef supabase fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000000;
+    classDef db fill:#ffffff,stroke:#1565c0,stroke-width:2px,color:#000000;
 
+    subgraph STACK_CLIENTE [STACK CLIENTE: React 18 / Vite / TypeScript / Tailwind CSS / shadcn/ui / React Router v6]
+        A[INTERFAZ DE USUARIO INTERACTIVA<br>Desarrollada con herramientas modernas para navegación intuitiva]
+    end
+    class STACK_CLIENTE,A frontend;
+
+    subgraph CAPA_APLICACION [CAPA DE APLICACIÓN (LÓGICA DE NEGOCIO)]
+        subgraph CORE [CAPA DE SERVICIOS DE LÓGICA DE NEGOCIO (INTERNAL CORE)]
+            subgraph COMPONENTES [COMPONENTES DE SERVICIO MODULAR / LÓGICA DE NEGOCIO PRINCIPAL]
+                B1[GESTOR DE EVALUACIONES<br>Cálculo de Notas y Gestión de Preguntas in-memory]
+                B2[MOTOR DE NOTIFICACIONES<br>Emisión de Alertas y Actualizaciones Asíncronas]
+            end
+        end
+    end
+    class CAPA_APLICACION,CORE,COMPONENTES,B1,B2 core;
+
+    subgraph CAPA_DATOS [CAPA DE DATOS (BACKEND)]
+        subgraph BAAS [SERVICIOS DE DATOS BaaS INTEGRADOS (Supabase)]
+            C[AUTENTICACIÓN Y AUTORIZACIÓN<br>(Supabase Auth)]
+        end
+    end
+    class CAPA_DATOS,BAAS,C supabase;
+
+    subgraph CAPA_ALMACENAMIENTO [CAPA DE ALMACENAMIENTO]
+        D[(BASE DE DATOS RELACIONAL<br>(Supabase PostgreSQL))]
+    end
+    class CAPA_ALMACENAMIENTO,D db;
+
+    A <--> |Internal Service Endpoints| CORE
+    A <--> |Salida del API Gateway: con JWT token| BAAS
+    A --> |JWT Issuing| BAAS
+    CORE --> BAAS
+    BAAS <--> D
 ```
 
 ```mermaid
@@ -77,7 +107,6 @@ graph LR
     Servidor --> UC_S1
     Servidor --> UC_S2
     Servidor --> UC_S3
-
 ```
 
 ```mermaid
@@ -101,7 +130,6 @@ graph TD
     class In,Out inicioFin;
     class Step1,Step2,Step3,Step4,Step5,Step6 proceso;
     class Dec1 decision;
-
 ```
 
 ```mermaid
@@ -146,92 +174,56 @@ graph TD
     class D1,D2,D3 decision;
     class S3,S4,S9 db;
     class E1,E2,E3 error;
-
-```
-
-```mermaid
-graph TD
-    classDef capaUsuario fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000;
-    classDef capaAplicacion fill:#f1f8e9,stroke:#558b2f,stroke-width:2px,color:#000;
-    classDef capaDatos fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#000;
-    classDef capaAlmacenamiento fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#000;
-
-    subgraph CU [CAPA DE USUARIO - FRONTEND]
-        A[Interfaz de Usuario Interactiva<br>React 18 / Vite / TypeScript / Tailwind CSS]
-    end
-    class CU,A capaUsuario;
-
-    subgraph CA [CAPA DE APLICACIÓN - LÓGICA DE NEGOCIO]
-        subgraph MS [Runtime y API: Node.js con TypeScript / Express]
-            B[Gestor de Evaluaciones<br>Calificación Automática]
-            C[Motor de Notificaciones<br>Alertas de Progreso]
-        end
-    end
-    class CA,MS,B,C capaAplicacion;
-
-    subgraph CD [CAPA DE DATOS - BACKEND]
-        D[Servicio de Persistencia de Datos<br>BaaS Platform: Supabase]
-        E[Autenticación y Autorización<br>Supabase Auth & Edge Functions]
-    end
-    class CD,D,E capaDatos;
-
-    subgraph CB [CAPA DE ALMACENAMIENTO - BASE DE DATOS]
-        F[(Base de Datos Relacional<br>PostgreSQL Database - Supabase)]
-    end
-    class CB,F capaAlmacenamiento;
-
-    A <--> |HTTP / WebSockets| MS
-    B & C <--> D
-    D --> E
-    E <--> F
-
 ```
 
 ```mermaid
 erDiagram
     USUARIO ||--o{ PROGRESO : Registra
     USUARIO ||--o{ NOTIFICACION : Recibe
-    USUARIO ||--|| ROL : Posee
-    ROL ||--|{ ROL_PERMISO : Contiene
+    USUARIO }o--|| ROL : Recibe
+    ROL ||--|{ ROL_PERMISO : Posee
     PERMISO ||--|{ ROL_PERMISO : Asigna
     MODULO ||--o{ PROGRESO : Pertenece
-    MODULO ||--o{ NOTIFICACION : Alerta
+    MODULO ||--o{ NOTIFICACION : "Gestionado por Motor de Notificaciones Asincrono"
     MODULO ||--o{ RECURSO : Contiene
     MODULO ||--|| EVALUACION : Posee
     EVALUACION ||--|{ PREGUNTA : Compone
+    EVALUACION ||--|{ EVALUACION_RESULTADO : "Realiza en su computadora / Mejora altas respuestas en un anca"
     PREGUNTA ||--|{ OPCION : Ofrece
+    PREGUNTA ||--|| GABARITO_COMPLETO : "Compose"
+    OPCION ||--|| GABARITO_COMPLETO : "gabarito_id"
 
     USUARIO {
         int usuario_id PK
-        string nombre_completo
-        string rango
+        Varchar nombre_completo
+        Varchar rango
         int rol_id FK
     }
     PROGRESO {
         int progreso_id PK
         int usuario_id FK
         int modulo_id FK
-        string estado
-        decimal calificacion
-        date fecha_completada
+        Varchar estado
+        Decimal calificacion
+        Date fecha_completada
     }
     NOTIFICACION {
         int notificacion_id PK
         int usuario_id FK
         int modulo_id FK
-        string mensaje
-        datetime fecha_envio
-        boolean leida
+        Varchar mensaje
+        Datetime fecha_envio
+        Boolean leida
     }
     ROL {
         int rol_id PK
-        string nombre_rol
-        string descripcion
+        Varchar nombre_rol
+        Varchar descripcion
     }
     PERMISO {
         int permiso_id PK
-        string nombre_permiso
-        string descripcion
+        Varchar nombre_permiso
+        Varchar descripcion
     }
     ROL_PERMISO {
         int rol_id PK, FK
@@ -239,76 +231,78 @@ erDiagram
     }
     MODULO {
         int modulo_id PK
-        string titulo
-        string eje_tematico
-        string contenido_url
+        Varchar titulo
+        Varchar eje_tematico
+        Varchar contenido_url
     }
     RECURSO {
         int recurso_id PK
         int modulo_id FK
-        string nombre
-        string tipo
-        string url
+        Varchar nombre
+        Varchar tipo
+        Varchar url
     }
     EVALUACION {
         int evaluacion_id PK
         int modulo_id FK
-        decimal puntaje_minimo
+        Decimal puntaje_minimo
     }
     PREGUNTA {
-        int pregunta_id PK
+        int pregunta_id PK "Indexed"
         int evaluacion_id FK
-        string texto_pregunta
+        Varchar texto_pregunta
     }
     OPCION {
-        int opcion_id PK
-        int pregunta_id FK
-        string texto_opcion
-        boolean es_correcta
+        int opcion_id PK "Indexed"
+        int evaluacion_id FK "Indexed"
+        Varchar texto_opcion
+        Boolean es_correcta
     }
-
+    EVALUACION_RESULTADO {
+        int resultado_id PK
+        int evaluacion_id PK, FK
+        int usuario_id PK, FK
+        JSON respuestas_json_consolidado "Store todas las respuestas en una voza"
+        Decimal puntaje_total
+        Varchar estado "Uniqur: Varchar(20), e.g. Aprobado"
+        Date fecha_completada
+    }
+    GABARITO_COMPLETO {
+        int gabarito_id PK
+        JSON respuestas_json "Cargado en cache del Servidor"
+    }
 ```
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor U as Usuario (Cadete/Instructor)
+    actor Usuario
     participant UI as Interfaz de Usuario (Pantalla)
-    participant LN as Servidor de Aplicación (Lógica)
+    participant LN as Servidor de Aplicación (Lógica de Negocio)
     participant BD as Base de Datos (Almacenamiento)
 
-    Note over U, BD: Flujo de Autenticación y Acceso
-    U->>UI: Ingresar datos de acceso
-    UI->>LN: Enviar solicitud de autenticación
-    LN->>BD: Consultar credenciales de usuario
-    BD-->>LN: Retornar datos de usuario validados
-    LN-->>UI: Enviar permiso de acceso
-    UI-->>U: Mostrar acceso concedido
+    Usuario->>BD: Llamar a Supabase Auth
+    BD-->>Usuario: Devolver Token JWT
 
-    Note over U, BD: Carga de Contenido Académico Militar
-    U->>UI: Solicitar temas de estudio
-    UI->>LN: Pedir información de lecciones
-    LN->>BD: Buscar lecciones y archivos multimedia
-    BD-->>LN: Retornar contenido didáctico
-    LN-->>UI: Enviar lecciones estructuradas
-    UI-->>U: Mostrar contenido de estudio
+    Usuario->>UI: Ingresar datos de acceso con Token JWT
+    UI->>LN: Enviar petición (con Token en Header)
+    
+    activate LN
+    LN->>LN: Validar Token (Middleware)
+    LN->>LN: Llamar a evaluacionService
+    LN->>LN: Procesar nota en memoria
+    deactivate LN
 
-    Note over U, BD: Ejecución y Calificación de la Evaluación
-    U->>UI: Enviar respuestas del examen
-    UI->>LN: Transmitir respuestas para calificación
     LN->>BD: Consultar respuestas correctas
     BD-->>LN: Retornar gabarito de respuestas
-    Note over LN: Calificar respuestas y calcular nota
+    
+    LN->>LN: Calificar respuestas y calcular nota
+
     LN->>BD: Guardar calificación y progreso
     BD-->>LN: Confirmar guardado exitoso
     LN-->>UI: Enviar calificación y estadísticas
-    UI-->>U: Mostrar nota final
-    UI-->>U: Generar notificación de éxito
-
+    UI-->>Usuario: Mostrar nota final
+    UI-->>Usuario: Generar notificación de éxito
 ```
 
-```
-
-
-```
 📌 **Bitácora del Proyecto:** El historial detallado de tareas y el cumplimiento de la *Definition of Done (DoD)* se encuentran documentados de forma independiente en el archivo [CHANGELOG.md](./CHANGELOG.md).
