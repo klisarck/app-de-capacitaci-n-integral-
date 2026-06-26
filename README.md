@@ -1,9 +1,6 @@
-
-
-```markdown
 ### 📖 Documentación Técnica Autogenerada
 Para generar y visualizar el sitio web estático con la documentación técnica de las funciones del sistema, ejecute localmente:
-```npm run doc``` o ```bun run doc```
+`npm run doc` o `bun run doc`
 
 # Plataforma de Capacitación Integral y Control de Estudios de Cadetes
 
@@ -183,7 +180,6 @@ graph TD
     class S3,S4,S9 db;
     class E1,E2,E3 error;
 ```
-```
 
 ### Diagrama 5: Modelo Entidad-Relación (Base de Datos)
 ```mermaid
@@ -315,9 +311,7 @@ sequenceDiagram
     UI-->>Usuario: Mostrar nota final
     UI-->>Usuario: Generar notificación de éxito
 ```
-```
+
 ---
 
 📌 **Bitácora del Proyecto:** El historial detallado de tareas y el cumplimiento de la *Definition of Done (DoD)* se encuentran documentados de forma independiente en el archivo [CHANGELOG.md](./CHANGELOG.md).
-
-```
