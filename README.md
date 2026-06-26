@@ -1,6 +1,10 @@
+
+
+```markdown
 ### 📖 Documentación Técnica Autogenerada
 Para generar y visualizar el sitio web estático con la documentación técnica de las funciones del sistema, ejecute localmente:
 ```npm run doc``` o ```bun run doc```
+
 # Plataforma de Capacitación Integral y Control de Estudios de Cadetes
 
 Aplicación web automatizada y protegida diseñada para la gestión del plan de estudios y el progreso de conocimientos militares.
@@ -160,4 +164,159 @@ graph TD
     D2 -->|SÍ| S5(["Accede al panel de administración"])
     
     S5 --> S6[/"Instructor sube archivo<br>video, PDF o lectura"/]
-    S6 --> S7["Sistema valida formato
+    S6 --> S7["Sistema valida formato del archivo"]
+    
+    S7 --> D3{"¿Archivo<br>válido?"}
+    D3 -->|NO| E3["Formato inválido - Solicitar archivo nuevamente"] --> S6
+    
+    D3 -->|SÍ| S8["Guardar archivo en servidor"]
+    S8 --> S9[("(Vincular dirección en Base de Datos)")]
+    S9 --> S10["Actualizar módulo de estudio"]
+    S10 --> S11(["Enviar notificación a estudiantes"])
+    S11 --> F2
+    
+    class I,F1,F2,S1,S11 inicioFin;
+    class S2,S6 manual;
+    class S7,S8,S10 proceso;
+    class S5 control;
+    class D1,D2,D3 decision;
+    class S3,S4,S9 db;
+    class E1,E2,E3 error;
+```
+
+### Diagrama 5: Modelo Entidad-Relación (Base de Datos)
+```mermaid
+erDiagram
+    USUARIO ||--o{ PROGRESO : Registra
+    USUARIO ||--o{ NOTIFICACION : Recibe
+    USUARIO }o--|| ROL : Recibe
+    ROL ||--|{ ROL_PERMISO : Posee
+    PERMISO ||--|{ ROL_PERMISO : Asigna
+    MODULO ||--o{ PROGRESO : Pertenece
+    MODULO ||--o{ NOTIFICACION : "Gestionado por Motor de Notificaciones Asincrono"
+    MODULO ||--o{ RECURSO : Contiene
+    MODULO ||--|| EVALUACION : Posee
+    EVALUACION ||--|{ PREGUNTA : Compone
+    EVALUACION ||--|{ EVALUACION_RESULTADO : "Realiza en su computadora"
+    PREGUNTA ||--|{ OPCION : Ofrece
+    PREGUNTA ||--|| GABARITO_COMPLETO : "Compose"
+    OPCION ||--|| GABARITO_COMPLETO : "gabarito_id"
+
+    USUARIO {
+        int usuario_id PK
+        Varchar nombre_completo
+        Varchar rango
+        int rol_id FK
+    }
+    PROGRESO {
+        int progreso_id PK
+        int usuario_id FK
+        int modulo_id FK
+        Varchar estado
+        Decimal calificacion
+        Date fecha_completada
+    }
+    NOTIFICACION {
+        int notificacion_id PK
+        int usuario_id FK
+        int modulo_id FK
+        Varchar mensaje
+        Datetime fecha_envio
+        Boolean leida
+    }
+    ROL {
+        int rol_id PK
+        Varchar nombre_rol
+        Varchar descripcion
+    }
+    PERMISO {
+        int permiso_id PK
+        Varchar nombre_permiso
+        Varchar descripcion
+    }
+    ROL_PERMISO {
+        int rol_id PK, FK
+        int permiso_id PK, FK
+    }
+    MODULO {
+        int modulo_id PK
+        Varchar titulo
+        Varchar eje_tematico
+        Varchar contenido_url
+    }
+    RECURSO {
+        int recurso_id PK
+        int modulo_id FK
+        Varchar nombre
+        Varchar tipo
+        Varchar url
+    }
+    EVALUACION {
+        int evaluacion_id PK
+        int modulo_id FK
+        Decimal puntaje_minimo
+    }
+    PREGUNTA {
+        int pregunta_id PK "Indexed"
+        int evaluacion_id FK
+        Varchar texto_pregunta
+    }
+    OPCION {
+        int opcion_id PK "Indexed"
+        int evaluacion_id FK "Indexed"
+        Varchar texto_opcion
+        Boolean es_correcta
+    }
+    EVALUACION_RESULTADO {
+        int resultado_id PK
+        int evaluacion_id PK, FK
+        int usuario_id PK, FK
+        JSON respuestas_json_consolidado "Store todas las respuestas"
+        Decimal puntaje_total
+        Varchar estado "Unique: Varchar(20), e.g. Aprobado"
+        Date fecha_completada
+    }
+    GABARITO_COMPLETO {
+        int gabarito_id PK
+        JSON respuestas_json "Cargado en cache del Servidor"
+    }
+```
+
+### Diagrama 6: Secuencia de Autenticación y Evaluación
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Usuario
+    participant UI as Interfaz de Usuario (Pantalla)
+    participant LN as Servidor de Aplicación (Lógica de Negocio)
+    participant BD as Base de Datos (Almacenamiento)
+
+    Usuario->>BD: Llamar a Supabase Auth
+    BD-->>Usuario: Devolver Token JWT
+
+    Usuario->>UI: Ingresar datos de acceso con Token JWT
+    UI->>LN: Enviar petición (con Token en Header)
+    
+    activate LN
+    LN->>LN: Validar Token (Middleware)
+    LN->>LN: Llamar a evaluacionService
+    LN->>LN: Procesar nota en memoria
+    deactivate LN
+
+    LN->>BD: Consultar respuestas correctas
+    BD-->>LN: Retornar gabarito de respuestas
+    
+    LN->>LN: Calificar respuestas y calcular nota
+
+    LN->>BD: Guardar calificación y progreso
+    BD-->>LN: Confirmar guardado exitoso
+    LN-->>UI: Enviar calificación y estadísticas
+    UI-->>Usuario: Mostrar nota final
+    UI-->>Usuario: Generar notificación de éxito
+```
+
+---
+
+📌 **Bitácora del Proyecto:** El historial detallado de tareas y el cumplimiento de la *Definition of Done (DoD)* se encuentran documentados de forma independiente en el archivo [CHANGELOG.md](./CHANGELOG.md).
+
+```
