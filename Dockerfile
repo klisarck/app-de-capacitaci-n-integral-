@@ -1,13 +1,16 @@
 FROM node:18-alpine
+
 WORKDIR /app
 
-# Copiamos solo los archivos de dependencias primero para aprovechar el caché
-COPY package.json package-lock.json* bun.lock* ./
+# Copiamos archivos de configuración
+COPY package*.json ./
+COPY backend/package.json ./backend/package.json
 
-# Instalamos dependencias usando npm (asegurando compatibilidad)
-RUN npm install --frozen-lockfile || npm install
+# Instalamos dependencias de forma sencilla y confiable
+RUN npm install
+RUN cd backend && npm install
 
-# Ahora copiamos el resto del código
+# Copiamos el código fuente
 COPY . .
 
 # Construimos el frontend
@@ -15,5 +18,5 @@ RUN npm run build
 
 EXPOSE 8080
 
-# Usamos npx para asegurar que tsx esté disponible
+# Arrancamos el servidor
 CMD ["npx", "tsx", "backend/index.ts"]
