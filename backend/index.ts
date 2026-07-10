@@ -38,7 +38,8 @@ const frontendDistPath = path.join(__dirname, '../dist');
 app.use(express.static(frontendDistPath));
 
 // Cualquier petición que no sea la API, devolverá el index.html de React
-app.get('*', (req, res) => {
+// Usamos la expresión regular /(.*)/ para evitar el error de "Missing parameter name"
+app.get(/(.*)/, (req, res) => {
     res.sendFile(path.join(frontendDistPath, 'index.html'));
 });
 // ---------------------------------------------
