@@ -1,17 +1,12 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path'; // <-- Importamos 'path' para manejar rutas de archivos
 import { validateToken } from './middleware'; 
 import { evaluarExamen } from '../src/services/evaluacionService';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-
-// --- NUEVO: Endpoint de verificación de salud (Paso 1 del Avance #5) ---
-app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'ok', message: 'Sistema operativo y funcionando' });
-});
-// ------------------------------------------------------------------------
 
 // Endpoint para procesar la evaluación
 app.post('/api/evaluar', validateToken, (req, res) => {
@@ -34,6 +29,19 @@ app.post('/api/evaluar', validateToken, (req, res) => {
         res.status(404).json({ error: error.message });
     }
 });
+
+// --- CONFIGURACIÓN PARA SERVIR EL FRONTEND ---
+// Apuntamos a la carpeta 'dist' que genera Vite al compilar
+const frontendDistPath = path.join(__dirname, '../dist');
+
+// Servimos los archivos estáticos (JS, CSS, imágenes)
+app.use(express.static(frontendDistPath));
+
+// Cualquier petición que no sea la API, devolverá el index.html de React
+app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendDistPath, 'index.html'));
+});
+// ---------------------------------------------
 
 // Iniciamos el servidor en el puerto 8080
 app.listen(8080, () => {
