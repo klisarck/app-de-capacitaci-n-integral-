@@ -25,3 +25,12 @@ Para este corte evaluativo, los entregables han sido validados bajo los siguient
 2. **Pipeline en Verde:** Pruebas unitarias automatizadas integradas y validadas con éxito en el servidor de GitHub Actions mediante Bun.
 3. **Revisión de Pares:** Historial de Pull Requests cerrados visible y disponible en GitHub para verificar las políticas de fusión y el bloqueo de ramas.
 4. **Desacoplamiento:** El prototipo es capaz de ejecutarse en un entorno limpio utilizando de forma aislada las variables de configuración del archivo `.env`.
+
+## [2.0.0-rc1] - 2026-07-09
+## Avance #5: Despliegue y Auto-recuperación
+
+* **Enlace del Sistema en Producción:** 
+* **Ruta de Verificación de Salud (Health Check):** 
+* **Artefacto Inmutable:** Configurado vía `Dockerfile` en la raíz del proyecto.
+* **Pipeline CD:** Implementado con GitHub Actions (`.github/workflows/deploy.yml`) e integrado con la plataforma de despliegue.
+* **Auto-recuperación (Self-Healing):** Gestionado automáticamente por el orquestador de contenedores en producción ante fallas críticas.
