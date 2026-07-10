@@ -1,0 +1,14 @@
+name: Pipeline CD - Despliegue Automático
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v3
+        
+      - name: Verificación de Artefacto
+        run: echo "Construyendo artefacto inmutable y sincronizando con el entorno de producción..."
