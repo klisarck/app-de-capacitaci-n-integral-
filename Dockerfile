@@ -1,21 +1,19 @@
 FROM node:18-alpine
 WORKDIR /app
 
-# 1. Copiamos los manifiestos de dependencias
-COPY package*.json ./
+# Copiamos solo los archivos de dependencias primero para aprovechar el caché
+COPY package.json package-lock.json* bun.lock* ./
 
-# 2. Instalamos todas las dependencias
-RUN npm install
+# Instalamos dependencias usando npm (asegurando compatibilidad)
+RUN npm install --frozen-lockfile || npm install
 
-# 3. Copiamos todo el código de tu proyecto (frontend y backend)
+# Ahora copiamos el resto del código
 COPY . .
 
-# 4. Construimos el frontend de React/Vite para producción
+# Construimos el frontend
 RUN npm run build
 
-# 5. Exponemos el puerto donde corre tu servidor Express
 EXPOSE 8080
 
-# 6. Comando de producción: Ejecutamos el backend en TypeScript
-# (Asegúrate de que la ruta apunte al archivo donde pegaste el código del Paso 1)
+# Usamos npx para asegurar que tsx esté disponible
 CMD ["npx", "tsx", "backend/index.ts"]
