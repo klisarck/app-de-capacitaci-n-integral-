@@ -6,9 +6,9 @@ WORKDIR /app
 COPY package*.json ./
 COPY backend/package.json ./backend/package.json
 
-# Instalamos dependencias de forma sencilla y confiable
-RUN npm install
-RUN cd backend && npm install
+# Instalamos dependencias usando --legacy-peer-deps para evitar conflictos de versiones
+RUN npm install --legacy-peer-deps
+RUN cd backend && npm install --legacy-peer-deps
 
 # Copiamos el código fuente
 COPY . .
