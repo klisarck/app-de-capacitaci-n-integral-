@@ -7,7 +7,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-
+// --- NUEVO: Endpoint de verificación de salud (Paso 1 del Avance #5) ---
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', message: 'Sistema operativo y funcionando' });
+});
+// ------------------------------------------------------------------------
 
 // Endpoint para procesar la evaluación
 app.post('/api/evaluar', validateToken, (req, res) => {
